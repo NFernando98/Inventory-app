@@ -9,7 +9,7 @@ import {
   Modal,
   TextField,
 } from "@mui/material";
-import { firestore } from '@/firebase';
+import { firestore } from "@/firebase";
 import {
   collection,
   doc,
@@ -19,6 +19,8 @@ import {
   deleteDoc,
   getDoc,
 } from "firebase/firestore";
+
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const style = {
   position: "absolute",
@@ -40,7 +42,8 @@ export default function Home() {
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
   const [itemName, setItemName] = useState("");
-  
+  const [itemImage, setItemImage] = useState(null);
+
 
   // Update
   const updateInventory = async () => {
@@ -59,6 +62,13 @@ export default function Home() {
 
   // Add
   const addItem = async (item) => {
+    // Upload image to firebase storage
+    const storage = getStorage();
+    const storageRef = ref(storage, `images/${itemImage.name}`);
+    const snapshot = await uploadBytes(storageRef, itemImage);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    // Add item to firestore
     const docRef = doc(collection(firestore, "inventory"), item);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -72,6 +82,7 @@ export default function Home() {
 
   // Remove
   const removeItem = async (item) => {
+    // Delete item from firestore
     const docRef = doc(collection(firestore, "inventory"), item);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -107,16 +118,22 @@ export default function Home() {
         <Box sx={style}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Add Item
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setItemImage(e.target.files[0])}
+            />
           </Typography>
           <Stack width="100%" direction={"row"} spacing={2}>
             <TextField
               id="outlined-basic"
-              label="Item"
+              label="Item Name"
               variant="outlined"
               fullWidth
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
             />
+
             <Button
               variant="outlined"
               onClick={() => {
