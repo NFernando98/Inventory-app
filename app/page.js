@@ -82,6 +82,15 @@ export default function Home() {
 
   // Remove
   const removeItem = async (item) => {
+    // // Delete image from firebase storage
+    // const storage = getStorage();
+    // const desertRef = ref(storage, `images/${itemImage.name}`);
+    // deleteObject(desertRef).then(() => {
+    //   console.log("deleted successfully")
+    // }).catch((error) => {
+    //   console.log(error)
+    // });
+
     // Delete item from firestore
     const docRef = doc(collection(firestore, "inventory"), item);
     const docSnap = await getDoc(docRef);
